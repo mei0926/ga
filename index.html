@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="楽天チケット" />
+<link rel="apple-touch-icon" href="ios.png" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;600;900&display=swap" rel="stylesheet"/>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+#app {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ページ */
+.page {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.35s ease;
+}
+
+/* 初期状態 */
+.page.hidden-right {
+    transform: translateX(100%);
+}
+
+.page.hidden-bottom {
+    transform: translateY(100%);
+}
+
+.page.active {
+    transform: translate(0, 0);
+}
+
+#p1 { background-image: url('p1.png'); }
+#p2 { background-image: url('p2.png'); }
+#p3 { background-image: url('p3.png'); }
+
+/* P1ボタン */
+#toP2 {
+    position: absolute;
+    width: 100%;
+    height: 70%;
+    top: 60%;
+    background: transparent;
+    border: none;
+}
+
+/* 時計 */
+.clock {
+    position: absolute;
+    top: 53%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: 900;
+    color: rgb(102, 26, 141);
+    z-index: 5;
+}
+
+.clockp3 {
+    position: absolute;
+    top: 51%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: 900;
+    color: rgb(102, 26, 141);
+    z-index: 5;
+}
+
+/* P3表示時刻タイムスタンプ */
+#p3Timestamp {
+  position: absolute;
+  top: 34.5%;           /* 画面上部からの位置 */
+  left: 61.5%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 600;
+  color: #807e7e;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+/* スライダー */
+#swipeArea {
+    position: absolute;
+    top: 43%;
+    left: 2.5%;
+    width: 95%;
+    height: 60px;
+    background: #8f8f8f;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+#swipeBar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 10%;
+    background: rgb(102, 26, 141);
+    border-radius: 30px;
+    overflow: hidden;
+    z-index: 2;
+}
+
+#sliderKnob {
+    position: absolute;
+    top: 50%;
+    left: 8%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 60px;
+    border-radius: 47%;
+    background: rgb(102, 26, 141);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    font-size: 20px;
+    z-index: 2;
+}
+
+#barText {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+#areaText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 900;
+    text-align: center;
+}
+
+/* iPhone風ポップアップ */
+#alertOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(0.1px);
+    z-index: 9999;
+}
+
+.ios-alert {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 270px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 14px;
+    overflow: hidden;
+    text-align: center;
+}
+
+.alert-content {
+    padding: 20px;
+    font-weight: 700;
+}
+
+.alert-buttons {
+    display: flex;
+    border-top: 1px solid #ddd;
+}
+
+.alert-buttons button {
+    flex: 1;
+    height: 44px;
+    border: none;
+    background: white;
+    font-size: 17px;
+    color: rgb(102, 26, 141);
+}
+
+.alert-buttons button:first-child {
+    border-right: 1px solid #ddd;
+}
+
+.info-text {
+    position: absolute;
+    left: 9%;
+    width: 90%;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgb(3, 0, 0);
+    z-index: 5;
+    white-space: nowrap;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
+
+.info-text[contenteditable="true"] {
+    outline: none;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.text-top {
+    top: 56.8%;
+}
+
+.text-bottom {
+    top: 62%;
+}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+    <div id="p1" class="page active">
+        <button id="toP2"></button>
+    </div>
+
+  <div id="p2" class="page hidden-bottom">
+    <div id="swipeArea">
+      <div id="swipeBar">
+        <div id="barText">1枚で入場する</div>
+      </div>
+      <div id="sliderKnob">→</div>
+      <div id="areaText"><span style="color:rgb(102 26 141);">1枚</span>で入場する<br>（係員が操作）</div>
+    </div>
+        <div id="clockP2" class="clock"></div>
+        <div class="info-text text-top" id="p2Text1"></div>
+        <div class="info-text text-bottom" id="p2Text2"></div>
+  </div>
+
+    <div id="p3" class="page hidden-right">
+        <div id="clockP3" class="clockp3"></div>
+        <div id="p3Timestamp" ></div>
+        <div class="info-text text-top" id="p3Text1"></div>
+        <div class="info-text text-bottom" id="p3Text2" contenteditable="true"></div>
+    </div>
+
+</div>
+
+<div id="alertOverlay">
+    <div class="ios-alert">
+        <div class="alert-content">入場済みにする</div>
+        <div class="alert-buttons">
+            <button id="cancelBtn">キャンセル</button>
+            <button id="okBtn">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const pages = document.querySelectorAll('.page');
+const alertOverlay = document.getElementById('alertOverlay');
+const okBtn = document.getElementById('okBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+
+function showPage(id, direction = 'right') {
+    const target = document.getElementById(id);
+    const current = document.querySelector('.page.active');
+
+    target.style.display = 'block';
+
+    if (current && current !== target) {
+        current.classList.remove('active');
+    }
+
+    if (direction === 'bottom') {
+        target.classList.remove('hidden-bottom');
+    } else {
+        target.classList.remove('hidden-right');
+    }
+
+    requestAnimationFrame(() => {
+        target.classList.add('active');
+    });
+
+    if (current && current !== target) {
+        setTimeout(() => {
+            current.style.display = 'none';
+        }, 350);
+    }
+      if(id === 'p3'){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('p3Timestamp').textContent = `2026/04/18 (${hh}:${mm})`;
+  }
+}
+/* P1 → P2 */
+document.getElementById('toP2').addEventListener('click', () => {
+    showPage('p2', 'bottom');
+});
+
+/* 時計 */
+function updateClock(id) {
+    const now = new Date();
+    const time = now.toLocaleTimeString('ja-JP');
+    document.getElementById(id).textContent = `現在:${time}`;
+}
+
+setInterval(() => {
+    updateClock('clockP2');
+    updateClock('clockP3');
+}, 1000);
+
+
+
+/* スライダー */
+const swipeArea = document.getElementById('swipeArea');
+const swipeBar = document.getElementById('swipeBar');
+const sliderKnob = document.getElementById('sliderKnob');
+
+let dragging = false;
+
+function updateSlider(x) {
+    const rect = swipeArea.getBoundingClientRect();
+
+    let pos = x - rect.left;
+    pos = Math.max(rect.width * 0.05, Math.min(rect.width, pos));
+
+    const progress = pos / rect.width;
+
+    const knobRadius = sliderKnob.offsetWidth / 2;
+
+    swipeBar.style.width = `${pos + knobRadius}px`;
+    sliderKnob.style.left = `${progress * 100}%`;
+
+    // テキスト中央移動
+    const startLeft = 15;
+    const endLeft = (rect.width / 2) - (barText.offsetWidth / 2);
+    const currentLeft = startLeft + (endLeft - startLeft) * progress;
+    barText.style.left = `${currentLeft}px`;
+    return progress;
+}
+
+swipeArea.addEventListener('touchstart', () => dragging = true);
+swipeArea.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    updateSlider(e.touches[0].clientX);
+});
+
+swipeArea.addEventListener('touchend', e => {
+    if (!dragging) return;
+
+    const progress = updateSlider(e.changedTouches[0].clientX);
+
+    if (progress > 0.8) {
+        alertOverlay.style.display = 'block';
+    } else {
+        updateSlider(swipeArea.getBoundingClientRect().left + swipeArea.offsetWidth * 0.1);
+    }
+
+    dragging = false;
+});
+
+/* ポップアップ */
+document.getElementById('cancelBtn').addEventListener('click', () => {
+    alertOverlay.style.display = 'none';
+    updateSlider(swipeArea.getBoundingClientRect().left + swipeArea.offsetWidth * 0.1);
+});
+
+okBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    alertOverlay.style.display = 'none';
+
+    requestAnimationFrame(() => {
+        showPage('p3', 'right');
+    });
+});
+</script>
+
+</body>
+</html>
