@@ -10,6 +10,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;600;900&display=swap" rel="stylesheet"/>
 
 <style>
+
+/* タップ時の暗転・ハイライトを無効化 */
+* {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+}
+
+
+/* 文字の選択・コピーを無効化 */
+html, body, #app, .page, .page * {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+
 html, body {
     margin: 0;
     padding: 0;
